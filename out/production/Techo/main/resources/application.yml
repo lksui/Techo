@@ -1,0 +1,47 @@
+server:
+  port: 8080
+  address: 0.0.0.0          # 监听所有网卡，手机才能访问
+
+spring:
+  application:
+    name: techo
+
+  datasource:
+    # 【必须是绝对路径】用相对路径时，从别的目录启动会连到一个新的空库，
+    # 表现就是「数据全丢了」——其实只是连错了文件。
+    #
+    # 【PRAGMA 写在 URL 里】这是关键：
+    #   journal_mode 会持久化到数据库文件，但 busy_timeout / synchronous / foreign_keys
+    #   都是「连接级」设置，每次新建连接都要重新应用。
+    #   写在 URL 里，连接池每次建连都会自动带上，不会漏。
+    #   ⚠️ 绝对不要用一条 execute 执行多条 PRAGMA —— 只有第一条会生效，且不报错。
+    # 注意：这里必须写成单行并加引号。用 YAML 的 >- 折叠写法会把换行变成空格，
+    # 导致 URL 里多出一个空格而连接失败。
+    url: "jdbc:sqlite:D:/DSHWorkSpace/Techo/data/journal.db?journal_mode=WAL&busy_timeout=5000&synchronous=NORMAL&foreign_keys=true"
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite 同一时刻只允许一个写事务。池设为 1 可彻底避免 SQLITE_BUSY，
+      # 个人应用并发极低，这是最简单且绝对正确的选择。
+      maximum-pool-size: 1
+      pool-name: techo-pool
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+  thymeleaf:
+    cache: false              # 开发期关闭模板缓存；上线后可改为 true
+    # TODO(M2): templates/ 目前为空，Maven 不会把空目录打进 jar，因此启动会有
+    # "Cannot find template location" 告警。加入模板文件后请删掉这一行。
+    check-template-location: false
+
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+logging:
+  file:
+    name: D:/DSHWorkSpace/Techo/logs/techo.log
+  level:
+    root: INFO
