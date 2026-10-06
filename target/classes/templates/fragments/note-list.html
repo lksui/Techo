@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  记录列表片段。抽出来是为了搜索时只换列表。
+
+  和待办列表一样：<ul> 必须写在一行内，空状态靠 :empty 判断。
+-->
+<body>
+
+<ul th:fragment="list"
+    id="note-list"
+    class="note-list"
+    th:attr="data-empty=${q == null || q.isBlank()
+        ? '还没有记录。点上面的「写一条记录」开始。'
+        : '没有找到匹配的记录。'}"><th:block th:each="item : ${items}"><li th:replace="~{fragments/note-card :: card(${item})}"></li></th:block></ul>
+
+</body>
+</html>

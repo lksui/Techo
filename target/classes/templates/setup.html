@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17161a" media="(prefers-color-scheme: dark)">
+    <title>设置密码 · Techo</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}">
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}">
+</head>
+<body class="auth-body">
+
+<main class="auth-card">
+    <h1 class="auth-title">设置密码</h1>
+    <p class="auth-sub">
+        这是第一次启动。设一个密码，之后在这个局域网里访问手账都需要它。
+    </p>
+
+    <p class="flash flash-error" th:if="${error}" th:text="${error}">两次输入的密码不一致</p>
+
+    <form method="post" th:action="@{/setup}" class="auth-form">
+        <input type="password"
+               name="password"
+               class="field"
+               placeholder="密码（至少 4 位）"
+               autocomplete="new-password"
+               maxlength="128"
+               required
+               autofocus>
+        <input type="password"
+               name="confirm"
+               class="field"
+               placeholder="再输一次"
+               autocomplete="new-password"
+               maxlength="128"
+               required>
+        <button type="submit" class="btn-primary auth-submit">设置并进入</button>
+    </form>
+
+    <p class="auth-note">
+        密码只以 BCrypt 哈希存在数据库里，不保存明文。
+        忘了密码的话，删掉数据库里 <code>app_setting</code> 表中
+        <code>auth.password-hash</code> 那一行，重启后可以重新设置。
+    </p>
+</main>
+
+</body>
+</html>

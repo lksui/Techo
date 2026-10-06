@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  单条待办的两种状态：展示态 与 编辑态。
+
+  DOM 结构说明（滑动手势依赖它）：
+    .todo-item
+      .row-clip            裁剪容器，overflow:hidden
+        .row-slide         会整体左移的那一层
+          .todo-check / .todo-text / .todo-icon / .todo-delete
+        .row-actions       绝对定位在右侧，平时被 .row-slide 盖住
+      .subtasks            子目录区域，点击 .todo-text 展开 / 收起
+
+  默认展开还是收起由服务端决定（有子目录就展开），
+  用户手动改过的状态记在 localStorage 里，见 todo.html 的行内脚本。
+-->
+<body>
+
+<!-- ============================== 展示态 -->
+<li th:fragment="item(item, summary)"
+    th:id="'todo-' + ${item.id}"
+    class="todo-item"
+    th:classappend="(${item.done} ? 'done ' : '') + (${summary.isEmpty} ? 'collapsed' : '')"
+    th:attr="data-id=${item.id}">
+
+    <div class="row-clip">
+        <div class="row-slide">
+
+            <!-- 勾选：整块可点，触控目标远大于 44px -->
+            <button type="button"
+                    class="todo-check"
+                    th:attr="hx-patch=@{/todo/items/{id}/toggle(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    hx-disabled-elt="this"
+                    th:aria-pressed="${item.done}"
+                    th:aria-label="${item.done} ? '标记为未完成' : '标记为已完成'">
+                <span class="check-mark" aria-hidden="true">✓</span>
+            </button>
+
+            <!-- 点这里展开 / 收起子目录 -->
+            <div class="todo-text" data-toggle-subtasks>
+                <p class="todo-body" th:text="${item.body}">待办内容</p>
+                <div class="todo-meta">
+                    <time class="todo-time"
+                          th:datetime="${item.createdAt}"
+                          th:text="${item.createdAtDisplay}">03-05 10:15</time>
+                    <span class="subtask-badge"
+                          th:id="'subtask-badge-' + ${item.id}"
+                          th:text="${summary.badge}">1/3</span>
+                </div>
+            </div>
+
+            <!-- 编辑：铅笔图标，比文字按钮省横向空间 -->
+            <button type="button"
+                    class="todo-icon"
+                    th:attr="hx-get=@{/todo/items/{id}/edit(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    aria-label="编辑"
+                    title="编辑">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none"
+                     stroke="currentColor" stroke-width="1.7"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M13.5 3.5l3 3L7 16H4v-3z"/>
+                    <path d="M12 5l3 3"/>
+                </svg>
+            </button>
+
+            <button type="button"
+                    class="todo-delete"
+                    th:attr="hx-delete=@{/todo/items/{id}(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML swap:150ms"
+                    hx-confirm="确定删除这条待办吗？它的子目录也会一起进回收站。"
+                    aria-label="删除">✕</button>
+        </div>
+
+        <!-- 左划后露出来的动作 -->
+        <div class="row-actions">
+            <button type="button" class="swipe-btn swipe-add" data-subtask-add
+                    aria-label="加一条子目录">↵</button>
+        </div>
+    </div>
+
+    <!-- ============================== 子目录 -->
+    <div class="subtasks">
+        <ul class="subtask-list" th:id="'subtasks-' + ${item.id}"><th:block th:each="s : ${summary.items}"><li th:replace="~{fragments/subtask-item :: subtask(${s})}"></li></th:block><li class="subtask-new-row" hidden>
+                <form th:attr="hx-post=@{/todo/items/{id}/subtasks(id=${item.id})}"
+                      hx-target="closest ul"
+                      hx-swap="beforeend"
+                      hx-on::after-request="if (event.detail.successful) { this.reset(); this.closest('li').hidden = true; }">
+                    <input type="text" name="body" class="subtask-input"
+                           placeholder="子目录内容…" autocomplete="off" maxlength="20000" required>
+                </form>
+            </li></ul>
+    </div>
+</li>
+
+<!-- ============================== 编辑态 -->
+<li th:fragment="edit(item)"
+    th:id="'todo-' + ${item.id}"
+    class="todo-item todo-editing"
+    th:attr="data-id=${item.id}">
+
+    <form class="todo-edit-form"
+          th:attr="hx-put=@{/todo/items/{id}(id=${item.id})}"
+          hx-target="closest li"
+          hx-swap="outerHTML">
+
+        <textarea name="body" class="field todo-edit-body"
+                  rows="2" maxlength="20000" required
+                  th:text="${item.body}"></textarea>
+
+        <div class="form-actions">
+            <button type="button" class="btn-ghost btn-small"
+                    th:attr="hx-get=@{/todo/items/{id}(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML">取消</button>
+
+            <button type="submit" class="btn-primary btn-small"
+                    hx-disabled-elt="this">保存</button>
+        </div>
+    </form>
+</li>
+
+</body>
+</html>

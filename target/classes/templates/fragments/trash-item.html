@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  回收站的单条片段。列表片段见 trash-list.html（单独一个文件，
+  因为「清空回收站」需要把整个 <ul> 换掉）。
+
+  子目录也会出现在这里 —— 它是「属于某条待办」的一行，因此多显示一行归属说明。
+-->
+<body>
+
+<!-- ============================== 单条 -->
+<li th:fragment="item(item)"
+    th:id="'trash-' + ${item.id}"
+    class="note-card trash-card">
+
+    <div class="trash-head">
+        <span class="trash-type"
+              th:text="${item.subtask} ? '子目录' : (${item.todo} ? '待办' : '记录')">待办</span>
+        <span class="trash-when" th:text="'删除于 ' + ${item.deletedAtDisplay}">删除于 03-05 10:15</span>
+    </div>
+
+    <p class="trash-parent" th:if="${item.subtask}">
+        属于「<span th:text="${item.parentBody}">父级待办</span>」
+    </p>
+
+    <h2 class="note-title" th:if="${item.note}" th:text="${item.title}">标题</h2>
+    <p class="note-body" th:text="${item.body}">正文</p>
+
+    <div class="note-foot">
+        <time class="note-time"
+              th:datetime="${item.createdAt}"
+              th:text="'创建于 ' + ${item.createdAtDisplay}">创建于 03-05 10:15</time>
+
+        <div class="note-actions">
+            <button type="button" class="btn-icon"
+                    th:attr="hx-post=@{/trash/items/{id}/restore(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML swap:150ms"
+                    hx-disabled-elt="this">恢复</button>
+
+            <button type="button" class="btn-icon btn-danger"
+                    th:attr="hx-delete=@{/trash/items/{id}(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML swap:150ms"
+                    hx-confirm="彻底删除后无法恢复，确定吗？">彻底删除</button>
+        </div>
+    </div>
+</li>
+
+</body>
+</html>

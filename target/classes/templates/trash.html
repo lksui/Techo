@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('回收站 · Techo')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: nav('trash')}"></header>
+
+<main class="container">
+
+    <div class="page-head">
+        <p class="page-hint">
+            删除的条目会先放到这里，确认不要了再彻底删除。
+        </p>
+        <button type="button" class="btn-ghost btn-small"
+                th:disabled="${items.isEmpty()}"
+                hx-delete="/trash"
+                hx-target="#trash-list"
+                hx-swap="outerHTML"
+                hx-confirm="清空后这些条目都无法恢复，确定吗？">清空回收站</button>
+    </div>
+
+    <div th:replace="~{fragments/trash-list :: list}"></div>
+
+</main>
+
+</body>
+</html>

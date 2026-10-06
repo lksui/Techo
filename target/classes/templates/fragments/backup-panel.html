@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  备份面板。单独抽成片段是为了「立即备份」用 htmx 局部刷新。
+
+  早先的做法是表单 POST + 302 重定向回 /manage。这在浏览器里没问题，
+  但部分 HTTP 客户端（比如 .NET 的 HttpWebRequest）重定向时会保留 POST 方法，
+  于是变成「对 /manage 发 POST」—— 而 /manage 只接受 GET，直接 405。
+  改成 htmx 局部替换后，既没有重定向也就不用担心这类差异。
+-->
+<body>
+
+<section th:fragment="panel" id="backup-panel" class="panel">
+    <h2 class="panel-title">备份</h2>
+
+    <p class="flash" th:if="${message}" th:text="${message}">提示</p>
+
+    <p class="panel-hint">
+        每天凌晨自动生成一份数据库快照，保留最近 <b th:text="${keep}">30</b> 份。
+        快照是完整且一致的独立数据库文件，把它改名成 <code>journal.db</code> 就能直接使用。
+    </p>
+    <p class="panel-path" th:text="${snapshotDir}">备份目录</p>
+
+    <button type="button" class="btn-primary"
+            hx-post="/manage/backup"
+            hx-target="#backup-panel"
+            hx-swap="outerHTML"
+            hx-disabled-elt="this">立即备份</button>
+
+    <ul class="snapshot-list" th:if="${!snapshots.isEmpty()}">
+        <li th:each="s : ${snapshots}">
+            <span th:text="${s.display}">2026-03-05 03:30</span>
+            <span class="snapshot-size" th:text="${s.sizeKb} + ' KB'">0 KB</span>
+        </li>
+    </ul>
+    <p class="panel-hint" th:if="${snapshots.isEmpty()}">还没有任何快照。</p>
+</section>
+
+</body>
+</html>

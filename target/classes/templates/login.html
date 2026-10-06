@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17161a" media="(prefers-color-scheme: dark)">
+    <title>登录 · Techo</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}">
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}">
+</head>
+<body class="auth-body">
+
+<main class="auth-card">
+    <h1 class="auth-title">Techo</h1>
+    <p class="auth-sub">请输入密码</p>
+
+    <p class="flash flash-error" th:if="${error}" th:text="${error}">密码不正确</p>
+
+    <form method="post" th:action="@{/login}" class="auth-form">
+        <input type="password"
+               name="password"
+               class="field"
+               placeholder="密码"
+               autocomplete="current-password"
+               maxlength="128"
+               required
+               autofocus>
+        <button type="submit" class="btn-primary auth-submit">登录</button>
+    </form>
+</main>
+
+</body>
+</html>
