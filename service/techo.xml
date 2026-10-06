@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Techo 的 Windows 服务配置（WinSW）。
+
+  WinSW 的约定是：可执行文件叫 techo.exe，就会自动找同目录下的 techo.xml。
+  所以安装时直接运行 `techo.exe install` 即可，不需要传参数。
+
+  下面所有路径都是**绝对路径**。服务启动时的工作目录不可靠，
+  用相对路径会连到一个新建的空数据库 —— 表现就是「数据全丢了」。
+-->
+<service>
+
+    <id>techo</id>
+    <name>Techo 手账</name>
+    <description>局域网手账应用（Java / Spring Boot）。开机自动启动，崩溃自动重启。</description>
+
+    <!-- 用绝对路径指向 JDK，不依赖系统 PATH 或 JAVA_HOME -->
+    <executable>D:\Dev\jdk-27\bin\java.exe</executable>
+
+    <!--
+      内存相关的四个参数，实测把工作集从 386 MB 压到 151 MB（详情见 docs/技术方案.md §16.11）：
+
+        Xms32m / Xmx192m      限制堆。默认上限是按物理内存的 1/4 自动算的，
+                              这台机器上是 3.8 GB —— 对个人手账太奢侈。
+        UseSerialGC           单用户应用没有吞吐压力，串行 GC 省掉一堆 GC 线程。
+        ActiveProcessorCount  机器有 32 个逻辑核，JVM 会按核数开线程池。
+                              告诉它只有 2 个核，线程数从 76 降到 36。
+
+      参数 enable-native-access=ALL-UNNAMED 是 Java 27 下 sqlite-jdbc 必需的：
+      它通过 JNI 加载本地库，从 JDK 24 起这类调用会被标记为「受限」。
+      不加现在只是警告，但官方说未来版本会直接阻止。
+
+      注意：XML 注释里不能出现两个连续的连字符，所以这些参数没法原样写进注释。
+    -->
+    <arguments>-Xms32m -Xmx192m -XX:+UseSerialGC -XX:ActiveProcessorCount=2 --enable-native-access=ALL-UNNAMED -jar "D:\DSHWorkSpace\Techo\target\techo-1.0.0.jar"</arguments>
+
+    <workingdirectory>D:\DSHWorkSpace\Techo</workingdirectory>
+
+    <env name="JAVA_HOME" value="D:\Dev\jdk-27"/>
+
+    <startmode>Automatic</startmode>
+
+    <!-- 崩溃后自动重启，间隔逐次拉长，避免疯狂重启刷爆日志 -->
+    <onfailure action="restart" delay="10 sec"/>
+    <onfailure action="restart" delay="30 sec"/>
+    <onfailure action="restart" delay="60 sec"/>
+    <resetfailure>1 hour</resetfailure>
+
+    <!-- 服务的标准输出会转存到这里。应用自己的日志在 ..\logs\techo.log -->
+    <logpath>D:\DSHWorkSpace\Techo\logs\service</logpath>
+    <log mode="roll-by-size">
+        <sizeThreshold>10240</sizeThreshold>
+        <keepFiles>8</keepFiles>
+    </log>
+
+    <stoptimeout>20 sec</stoptimeout>
+
+</service>
