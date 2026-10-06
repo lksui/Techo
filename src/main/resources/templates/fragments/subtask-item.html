@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  子目录片段。
+
+  三种用法：
+    subtask(sub)                        初始渲染时用，只出一条 <li>
+    subtaskAndBadge(sub, parentId, ...) htmx 响应用：子目录本体 + 顺带更新父级计数徽标
+    badge(parentId, total, done)        删除时用，只更新徽标
+
+  为什么初始渲染和响应要分开：徽标必须带 hx-swap-oob 才能被 htmx 识别成「带外交换」，
+  但如果初始渲染也带上，页面上就会出现一堆重复 id 的徽标元素。
+-->
+<body>
+
+<!-- ============================== 单条子目录 -->
+<li th:fragment="subtask(sub)"
+    th:id="'subtask-' + ${sub.id}"
+    class="subtask"
+    th:classappend="${sub.done} ? 'done' : ''"
+    th:attr="data-id=${sub.id}">
+
+    <div class="row-clip">
+        <div class="row-slide">
+            <button type="button" class="subtask-check"
+                    th:attr="hx-patch=@{/todo/subtasks/{id}/toggle(id=${sub.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML"
+                    hx-disabled-elt="this"
+                    th:aria-pressed="${sub.done}"
+                    th:aria-label="${sub.done} ? '标记为未完成' : '标记为已完成'">
+                <span class="check-mark" aria-hidden="true">✓</span>
+            </button>
+
+            <p class="subtask-body" th:text="${sub.body}">子目录内容</p>
+        </div>
+
+        <!-- 左划后露出来的三个动作 -->
+        <div class="row-actions">
+            <button type="button" class="swipe-btn swipe-add" data-subtask-add
+                    aria-label="在这条下面插入一条">↵</button>
+
+            <button type="button" class="swipe-btn swipe-edit" data-subtask-edit
+                    aria-label="修改这条子目录">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none"
+                     stroke="currentColor" stroke-width="1.7"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M13.5 3.5l3 3L7 16H4v-3z"/>
+                    <path d="M12 5l3 3"/>
+                </svg>
+            </button>
+
+            <button type="button" class="swipe-btn swipe-del"
+                    th:attr="hx-delete=@{/todo/subtasks/{id}(id=${sub.id})}"
+                    hx-target="closest li"
+                    hx-swap="delete"
+                    aria-label="删除这条子目录">✕</button>
+        </div>
+    </div>
+
+    <!-- 就地输入：点绿色回车后显示，打完按回车保存，不产生空记录 -->
+    <form class="subtask-new-form" hidden
+          th:attr="hx-post=@{/todo/items/{pid}/subtasks(pid=${sub.parentId})}"
+          hx-target="closest li"
+          hx-swap="afterend"
+          hx-on::after-request="if (event.detail.successful) { this.reset(); this.hidden = true; }">
+        <input type="text" name="body" class="subtask-input"
+               placeholder="在这一条下面插入…" autocomplete="off" maxlength="20000" required>
+        <input type="hidden" name="after" th:value="${sub.id}">
+    </form>
+
+    <!-- 就地编辑：点铅笔后显示，带原文字，回车保存、Esc 取消 -->
+    <form class="subtask-edit-form" hidden
+          th:attr="hx-put=@{/todo/subtasks/{id}(id=${sub.id})}"
+          hx-target="closest li"
+          hx-swap="outerHTML"
+          hx-disabled-elt="find input">
+        <input type="text" name="body" class="subtask-input"
+               th:value="${sub.body}"
+               placeholder="修改这条子目录…" autocomplete="off"
+               maxlength="20000" required>
+    </form>
+</li>
+
+<!-- ============================== htmx 响应用：本体 + 带外更新徽标 -->
+<th:block th:fragment="subtaskAndBadge(sub, parentId, total, done)">
+    <li th:replace="~{fragments/subtask-item :: subtask(${sub})}"></li>
+    <span th:replace="~{fragments/subtask-item :: badge(${parentId}, ${total}, ${done})}"></span>
+</th:block>
+
+<!-- ============================== 只更新徽标 -->
+<span th:fragment="badge(parentId, total, done)"
+      class="subtask-badge"
+      th:id="'subtask-badge-' + ${parentId}"
+      hx-swap-oob="true"
+      th:text="${total == 0 ? '' : done + '/' + total}"></span>
+
+</body>
+</html>

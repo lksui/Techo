@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  记录的两种状态：卡片 与 编辑表单。
+
+  两者都是 <li>，所以 htmx 始终把目标定位成 "closest li"，
+  就地替换即可。整页渲染和局部更新共用这两个片段，HTML 不会出现两份。
+-->
+<body>
+
+<!-- ============================== 卡片状态 -->
+<li th:fragment="card(item)"
+    th:id="'note-' + ${item.id}"
+    class="note-card">
+
+    <h2 class="note-title" th:text="${item.title}">标题</h2>
+    <p class="note-body" th:text="${item.body}">正文</p>
+
+    <div class="note-foot">
+        <time class="note-time"
+              th:datetime="${item.createdAt}"
+              th:text="${item.createdAtDisplay}">03-05 10:15</time>
+
+        <div class="note-actions">
+            <button type="button" class="btn-icon"
+                    th:attr="hx-get=@{/notes/items/{id}/edit(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML">编辑</button>
+
+            <button type="button" class="btn-icon btn-danger"
+                    th:attr="hx-delete=@{/notes/items/{id}(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML swap:150ms"
+                    hx-confirm="确定删除这条记录吗？">删除</button>
+        </div>
+    </div>
+</li>
+
+<!-- ============================== 编辑状态 -->
+<li th:fragment="edit(item)"
+    th:id="'note-' + ${item.id}"
+    class="note-card note-editing">
+
+    <form th:attr="hx-put=@{/notes/items/{id}(id=${item.id})}"
+          hx-target="closest li"
+          hx-swap="outerHTML">
+
+        <input type="text" name="title" class="field"
+               th:value="${item.title}"
+               maxlength="200" required>
+
+        <textarea name="body" class="field field-body"
+                  rows="5" maxlength="20000" required
+                  th:text="${item.body}"></textarea>
+
+        <div class="form-actions">
+            <button type="button" class="btn-ghost"
+                    th:attr="hx-get=@{/notes/items/{id}(id=${item.id})}"
+                    hx-target="closest li"
+                    hx-swap="outerHTML">取消</button>
+
+            <button type="submit" class="btn-primary"
+                    hx-disabled-elt="this">保存</button>
+        </div>
+    </form>
+</li>
+
+</body>
+</html>

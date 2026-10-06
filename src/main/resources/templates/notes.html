@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('记录 · Techo')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: nav('notes')}"></header>
+
+<main class="container">
+
+    <!--
+      用原生 <details> 做折叠，不需要写一行 JS。
+      记录通常写得长、写得少，输入区不该像待办那样一直占着屏幕。
+    -->
+    <details class="composer-box">
+        <summary class="composer-summary">
+            <span class="composer-plus" aria-hidden="true">＋</span>写一条记录
+        </summary>
+
+        <form class="note-form"
+              hx-post="/notes/items"
+              hx-target="#note-list"
+              hx-swap="afterbegin"
+              hx-disabled-elt="find button"
+              hx-on::after-request="if (event.detail.successful) { this.reset(); this.closest('details').removeAttribute('open'); }">
+
+            <input type="text" name="title" class="field" placeholder="标题"
+                   autocomplete="off" maxlength="200" required>
+
+            <textarea name="body" class="field field-body" placeholder="正文…"
+                      rows="4" maxlength="20000" required></textarea>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">保存</button>
+            </div>
+        </form>
+    </details>
+
+    <!-- 搜索。输入即搜，只换列表 -->
+    <form class="search"
+          hx-get="/notes/list"
+          hx-target="#note-list"
+          hx-swap="outerHTML"
+          hx-trigger="input changed delay:300ms, search"
+          hx-sync="this:replace">
+        <input type="search"
+               name="q"
+               class="search-input"
+               th:value="${q}"
+               placeholder="搜索标题或正文…"
+               autocomplete="off"
+               maxlength="200">
+    </form>
+
+    <div th:replace="~{fragments/note-list :: list}"></div>
+
+</main>
+
+</body>
+</html>

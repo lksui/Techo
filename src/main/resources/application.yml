@@ -1,0 +1,89 @@
+server:
+  port: 8080
+  address: 0.0.0.0          # 监听所有网卡，手机才能访问
+  servlet:
+    session:
+      # 手机上不想每半小时重登一次。局域网单人应用，30 天是个合理的折中。
+      timeout: 30d
+      cookie:
+        http-only: true
+        same-site: lax
+
+spring:
+  application:
+    name: techo
+
+  datasource:
+    # 【必须是绝对路径】用相对路径时，从别的目录启动会连到一个新的空库，
+    # 表现就是「数据全丢了」——其实只是连错了文件。
+    #
+    # 【PRAGMA 写在 URL 里】这是关键：
+    #   journal_mode 会持久化到数据库文件，但 busy_timeout / synchronous / foreign_keys
+    #   都是「连接级」设置，每次新建连接都要重新应用。
+    #   写在 URL 里，连接池每次建连都会自动带上，不会漏。
+    #   ⚠️ 绝对不要用一条 execute 执行多条 PRAGMA —— 只有第一条会生效，且不报错。
+    # 注意：这里必须写成单行并加引号。用 YAML 的 >- 折叠写法会把换行变成空格，
+    # 导致 URL 里多出一个空格而连接失败。
+    url: "jdbc:sqlite:D:/DSHWorkSpace/Techo/data/journal.db?journal_mode=WAL&busy_timeout=5000&synchronous=NORMAL&foreign_keys=true"
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite 同一时刻只允许一个写事务。池设为 1 可彻底避免 SQLITE_BUSY，
+      # 个人应用并发极低，这是最简单且绝对正确的选择。
+      maximum-pool-size: 1
+      pool-name: techo-pool
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+  thymeleaf:
+    cache: false              # 开发期关闭模板缓存；上线后可改为 true
+
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+  web:
+    resources:
+      # 【为什么需要这段】
+      # 默认情况下 Spring Boot 不给静态资源发 Cache-Control，浏览器于是按「启发式缓存」
+      # 自己拿主意留着旧版本。结果是改了 app.css，页面上还是旧样式，而且**不会自己刷新** ——
+      # 排查起来极其费劲（明明代码改了，浏览器就是不认）。
+      #
+      # chain.strategy.content 会把 @{/css/app.css} 渲染成 /css/app-<内容哈希>.css。
+      # 文件内容一变，URL 就变，浏览器自然会去取新的 —— 不依赖用户手动刷新。
+      # no-cache 是额外保险：即使某个资源没被加哈希，也每次都回源校验。
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
+      cache:
+        cachecontrol:
+          no-cache: true
+
+logging:
+  file:
+    name: D:/DSHWorkSpace/Techo/logs/techo.log
+  level:
+    root: INFO
+
+techo:
+  auth:
+    # 单人使用，关闭登录。
+    #
+    # ⚠️ 关闭后，同一个 WiFi 下的任何设备打开 http://本机IP:8080 都能直接看到全部内容。
+    # 现在的实际防线是防火墙规则的 -RemoteAddress 192.168.1.0/24：
+    # 只有家里这个网段的设备能连进来。
+    #
+    # 想重新打开登录，把这里改成 true 即可 —— 登录相关代码全部保留着，
+    # 之前设过的密码也还在数据库里（app_setting 表的 auth.password-hash）。
+    enabled: false
+  backup:
+    # 快照目录。这里的数据同样不能丢，建议定期把它复制到移动硬盘或另一台机器
+    dir: D:/DSHWorkSpace/Techo/backup
+    # 保留最近多少份，超出的自动删除
+    keep: 30
+    # 每天几点跑。默认凌晨 3:30，避开你白天输入的时间
+    cron: "0 30 3 * * *"

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('待办 · Techo')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: nav('todo')}"></header>
+
+<main class="container">
+
+    <!-- 输入区。回车即提交，不需要先点按钮 -->
+    <form class="composer"
+          hx-post="/todo/items"
+          hx-target="#todo-list"
+          hx-swap="afterbegin"
+          hx-disabled-elt="find button"
+          hx-on::after-request="if (event.detail.successful) this.reset()">
+        <input type="text"
+               name="body"
+               class="composer-input"
+               placeholder="记一条待办…"
+               autocomplete="off"
+               autocapitalize="off"
+               enterkeyhint="done"
+               maxlength="20000"
+               required>
+        <button type="submit" class="composer-add">添加</button>
+    </form>
+
+    <!--
+      搜索。输入即搜（300ms 防抖），只换下面的列表，不整页刷新。
+      hx-sync 保证连续输入时以最后一次为准，避免先发的慢请求后到、覆盖掉新结果。
+    -->
+    <form class="search"
+          hx-get="/todo/list"
+          hx-target="#todo-list"
+          hx-swap="outerHTML"
+          hx-trigger="input changed delay:300ms, search"
+          hx-sync="this:replace">
+        <input type="search"
+               name="q"
+               class="search-input"
+               th:value="${q}"
+               placeholder="搜索待办…"
+               autocomplete="off"
+               maxlength="200">
+        <!-- 搜索时保持当前的筛选状态 -->
+        <input type="hidden" name="status" th:value="${status}">
+    </form>
+
+    <nav class="filters">
+        <a th:href="@{/todo(status='all', q=${q})}"
+           th:classappend="${status == 'all'} ? 'active' : ''">全部</a>
+        <a th:href="@{/todo(status='open', q=${q})}"
+           th:classappend="${status == 'open'} ? 'active' : ''">未完成</a>
+        <a th:href="@{/todo(status='done', q=${q})}"
+           th:classappend="${status == 'done'} ? 'active' : ''">已完成</a>
+    </nav>
+
+    <div th:replace="~{fragments/todo-list :: list}"></div>
+
+    <p class="swipe-hint">
+        左划一条待办可以加子目录；左划子目录可以加一条或删掉它。
+        点待办本身展开 / 收起子目录。
+    </p>
+
+</main>
+
+<!--
+  展开 / 收起的状态在这里同步应用，而不是放到 defer 的 app.js 里。
+  原因：服务端渲染出来的是「展开」状态，如果等 app.js 再收起，
+  页面会先闪一下展开的内容。放在列表正下方，解析到这里时 DOM 已经就绪。
+-->
+<script>
+(function () {
+    'use strict';
+    var KEY = 'techo.subtasks.collapsed';
+    var saved = {};
+    try {
+        saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+    } catch (e) {
+        saved = {};   // 隐私模式下 localStorage 可能不可用，忽略即可
+    }
+
+    /** 按记忆（或「有子目录就展开」的默认）设置每条待办的展开状态。幂等。 */
+    function apply(root) {
+        (root || document).querySelectorAll('.todo-item[data-id]').forEach(function (li) {
+            var id = li.dataset.id;
+            var collapsed;
+            if (Object.prototype.hasOwnProperty.call(saved, id)) {
+                collapsed = saved[id] === true;
+            } else {
+                collapsed = li.querySelector('.subtask') === null;
+            }
+            li.classList.toggle('collapsed', collapsed);
+        });
+    }
+
+    window.techoCollapse = {
+        apply: apply,
+        toggle: function (li) {
+            var collapsed = li.classList.toggle('collapsed');
+            this.remember(li, collapsed);
+        },
+        /** 记住展开状态。app.js 在新增子目录后也会调它。 */
+        remember: function (li, collapsed) {
+            saved[li.dataset.id] = collapsed;
+            try {
+                localStorage.setItem(KEY, JSON.stringify(saved));
+            } catch (e) {
+                /* 忽略 */
+            }
+        }
+    };
+
+    apply(document);
+})();
+</script>
+
+</body>
+</html>

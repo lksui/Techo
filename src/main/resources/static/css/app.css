@@ -1,0 +1,1371 @@
+/* ==========================================================================
+   Techo — 样式表
+   移动优先：先写手机端，再用 min-width 媒体查询适配大屏。
+   ========================================================================== */
+
+:root {
+    --bg:            #faf9f7;
+    --bg-translucent:#faf9f7e0;
+    --surface:       #ffffff;
+    --surface-alt:   #f3f1ee;
+    --border:        #e9e5df;
+    --text:          #23201c;
+    --muted:         #8b857c;
+    --accent:        #4a6fa5;
+    --accent-soft:   #e8eef7;
+    --accent-ink:    #ffffff;
+    --danger:        #bf5a42;
+
+    --radius:        12px;
+    --tap:           44px;               /* 最小触控目标，手指没那么精确 */
+    --topbar-h:      52px;
+
+    /* 刘海屏安全区 */
+    --safe-top:      env(safe-area-inset-top, 0px);
+    --safe-bottom:   env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg:            #17161a;
+        --bg-translucent:#17161ae0;
+        --surface:       #201f24;
+        --surface-alt:   #26252b;
+        --border:        #322f38;
+        --text:          #ecebe8;
+        --muted:         #8d8a93;
+        --accent:        #8aabdd;
+        --accent-soft:   #262b36;
+        --accent-ink:    #14161c;
+        --danger:        #d9806a;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    /* iOS 横屏时不要擅自放大字体 */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    /* 去掉移动端 300ms 点击延迟 */
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* -------------------------------------------------------------- 顶栏 */
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-top: var(--safe-top);
+    background: var(--bg-translucent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+    max-width: 720px;
+    height: var(--topbar-h);
+    margin: 0 auto;
+    padding: 0 12px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.brand {
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: 0.3px;
+}
+
+.tabs {
+    display: flex;
+    gap: 2px;
+}
+
+.tabs a,
+.tabs .tab-disabled {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 15px;
+    text-decoration: none;
+    color: var(--muted);
+}
+
+.tabs a.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 600;
+}
+
+.tabs .tab-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------- 提示条 */
+
+/* 出错提示。固定深色，浅色/深色模式下对比度都够 */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + var(--safe-bottom));
+    z-index: 50;
+    max-width: calc(100% - 32px);
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: #2c2a31;
+    color: #f5f4f2;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+    opacity: 0;
+    transform: translate(-50%, 12px);
+    pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* -------------------------------------------------------------- 布局 */
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px 12px calc(32px + var(--safe-bottom));
+}
+
+/* -------------------------------------------------------------- 输入区 */
+
+.composer {
+    position: sticky;
+    top: calc(var(--topbar-h) + var(--safe-top));
+    z-index: 15;
+    display: flex;
+    gap: 8px;
+    padding: 8px 0 12px;
+    background: var(--bg);
+}
+
+.composer-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--tap);
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    /* 必须 >= 16px：iOS Safari 在更小字号的输入框聚焦时会自动放大页面 */
+    font-size: 16px;
+    font-family: inherit;
+}
+
+.composer-input::placeholder {
+    color: var(--muted);
+}
+
+.composer-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.composer-add {
+    flex: 0 0 auto;
+    height: var(--tap);
+    padding: 0 18px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.composer-add:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* -------------------------------------------------------------- 筛选 */
+
+.filters {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 12px;
+}
+
+.filters a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 14px;
+    text-decoration: none;
+    color: var(--muted);
+    background: var(--surface);
+}
+
+.filters a.active {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 600;
+}
+
+/* -------------------------------------------------------------- 列表 */
+
+.todo-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+/* 空状态。依赖 <ul> 真的是 :empty —— 模板里那行必须写在一行内，见 todo.html */
+.todo-list:empty {
+    border-style: dashed;
+    background: transparent;
+}
+
+.todo-list:empty::after {
+    /* 文案由列表片段的 data-empty 提供，能区分「一条都没有」和「搜索没结果」 */
+    content: attr(data-empty);
+    display: block;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/*
+  待办条目现在是个块级容器：上面是行，下面是子目录。
+
+  DOM 结构（滑动手势依赖它）：
+    .todo-item
+      .row-clip          裁剪容器，overflow:hidden
+        .row-slide       会整体左移的那一层，装着勾选/文字/编辑/删除
+        .row-actions     绝对定位在右侧，平时被 .row-slide 盖住
+      .subtasks          子目录区域
+*/
+.todo-item {
+    display: block;
+    /* 左划后露出的动作区宽度。父待办只露一个「加子目录」 */
+    --actions-w: 60px;
+    border-bottom: 1px solid var(--border);
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.todo-item:last-child {
+    border-bottom: 0;
+}
+
+/* htmx 插入动画 */
+.todo-item.htmx-added {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+/* htmx 删除时的淡出 */
+.todo-item.htmx-swapping {
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+
+/* -------------------------------------------------------------- 行内动作区
+ *
+ * 同一份 DOM，两种排布：
+ *   触屏（pointer: coarse）—— 动作区藏在行后面，靠左划揭示
+ *   鼠标（pointer: fine） —— 动作区直接排在行尾，一直可见
+ *
+ * ⚠️ 早先桌面端用的是「悬停时把整行左移」，那是个坏设计：
+ * 行内容整体左移后，**最左边的勾选圈被推出裁剪区**，鼠标还没点到它就先跑了，
+ * 结果在电脑上根本没法勾选划线。改成排布切换后没有任何位移，问题消失。
+ *
+ * 默认走「桌面」这套（按钮always 可见），只有明确检测到触屏才切到左划模式。
+ * 这样万一媒体查询没命中，用户看到的是可用的按钮，而不是一个用不了的手势。
+ */
+
+.subtask {
+    /* 触屏左划时动作区的宽度：子目录露三个动作 */
+    --actions-w: 156px;
+}
+
+.todo-item {
+    --actions-w: 60px;
+}
+
+.row-clip {
+    position: relative;
+    overflow: hidden;
+    /* 电脑端：行内容与动作并排，动作按钮上下居中 */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 4px;
+}
+
+.row-slide {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    padding-right: 4px;
+    background: var(--surface);
+}
+
+/*
+ * 电脑端把 .row-slide 这一层「解除」（display: contents），
+ * 让里面的勾选圈、正文直接成为 .row-clip 的 flex 子项。
+ *
+ * 为什么必须这样：「加子目录」按钮在 .row-actions 里，铅笔和删除在 .row-slide 里，
+ * 分属两个 flex 上下文，order 够不着对方。只有把这层打通，
+ * 才能把「加子目录」排到铅笔前面。
+ *
+ * 如果浏览器不支持 display: contents，这层会保持 flex，
+ * 结果是按钮顺序退回改动前 —— 只降级，不损坏。
+ */
+.row-clip > .row-slide {
+    display: contents;
+}
+
+.row-actions {
+    display: flex;
+    flex: 0 0 auto;
+    order: 3;
+    /*
+     * 电脑端 hover 时色块要「宽度不变、长度占满整行」：
+     * align-self: stretch 让动作组纵向撑满整行高度，
+     * 组内的按钮（无显式高度）也随之拉伸 ——
+     * 否则鼠标移上去，绿色/蓝色/红色只盖住图标那一小块。
+     * 触屏分支里 .row-actions 是绝对定位（top:0 bottom:0），
+     * 按钮本来就占满行高，这条对它们没有影响。
+     */
+    align-self: stretch;
+}
+
+/* 按钮自身在组内纵向拉伸，配合上面的 stretch 才有意义 */
+.row-actions .swipe-btn {
+    align-self: stretch;
+}
+
+/*
+ * 电脑端的按钮顺序：勾选 → 正文 → 加子目录 → 编辑 → 删除
+ *
+ * 手机完全不受影响：那边（pointer: coarse）用左划揭示，
+ * 下面这组 order 在触屏分支里会被重置为 0。
+ */
+.todo-check,
+.subtask-check {
+    order: 1;
+}
+
+.todo-text,
+.subtask-body {
+    order: 2;
+}
+
+.todo-icon {
+    order: 4;
+}
+
+.todo-delete {
+    order: 5;
+}
+
+/* 桌面端按钮：中性灰，悬停才上色。不然每行都挂着红绿按钮太扎眼 */
+.swipe-btn {
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.swipe-btn:hover,
+.swipe-btn:focus-visible {
+    color: #fff;
+    outline: none;
+}
+
+.swipe-btn.swipe-add:hover,
+.swipe-btn.swipe-add:focus-visible {
+    background: #3f9d6a;
+}
+
+.swipe-btn.swipe-edit:hover,
+.swipe-btn.swipe-edit:focus-visible {
+    background: #4a6fa5;
+}
+
+.swipe-btn.swipe-del:hover,
+.swipe-btn.swipe-del:focus-visible {
+    background: #c0503c;
+}
+
+/* -------------------------------------------------------------- 触屏：左划揭示 */
+
+@media (pointer: coarse) {
+
+    .row-clip {
+        display: block;
+    }
+
+    /* 还原滑动层 —— 电脑端被 display: contents 解除了 */
+    .row-clip > .row-slide {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        transition: transform 200ms ease;
+        will-change: transform;
+    }
+
+    /* 触屏靠左划揭示，不靠 order 排按钮 */
+    .todo-check,
+    .subtask-check,
+    .todo-text,
+    .subtask-body,
+    .row-actions,
+    .todo-icon,
+    .todo-delete {
+        order: 0;
+    }
+
+    /* 由 app.js 的手势逻辑加上这个类 */
+    .swiped-open > .row-clip > .row-slide {
+        transform: translateX(calc(-1 * var(--actions-w)));
+    }
+
+    /* 动作区移到行后面，被 z-index 更高的 .row-slide 盖住 */
+    .row-actions {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+    }
+
+    .swipe-btn {
+        width: 58px;
+        color: #fff;
+    }
+
+    /* 三个动作要挤一点，否则滑动位移太大、剩下的内容宽度不够 */
+    .subtask .swipe-btn {
+        width: 52px;
+    }
+
+    .swipe-btn.swipe-add {
+        background: #3f9d6a;      /* 绿色：加一条 */
+    }
+
+    .swipe-btn.swipe-edit {
+        background: #4a6fa5;      /* 蓝色：改文字 */
+    }
+
+    .swipe-btn.swipe-del {
+        background: #c0503c;      /* 红色：删掉这条 */
+    }
+
+    .swipe-btn:active {
+        filter: brightness(0.9);
+    }
+}
+
+/* -------------------------------------------------------------- 子目录 */
+
+.subtasks {
+    overflow: hidden;
+}
+
+.todo-item.collapsed .subtasks {
+    display: none;
+}
+
+.subtask-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 26px;         /* 左缩进，视觉上挂在父待办下面 */
+    background: var(--bg);
+}
+
+.subtask {
+    border-top: 1px solid var(--border);
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.subtask.htmx-added {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+.subtask.htmx-swapping {
+    opacity: 0;
+}
+
+.subtask > .row-clip > .row-slide {
+    background: var(--bg);
+}
+
+.subtask-check {
+    position: relative;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    margin-top: 2px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+/* 方形勾选框，和父级的圆形区分开 */
+.subtask-check::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 17px;
+    height: 17px;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.subtask.done .subtask-check::before {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.subtask .check-mark {
+    font-size: 11px;
+}
+
+.subtask.done .check-mark {
+    color: var(--accent-ink);
+}
+
+.subtask-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 9px 0;
+    font-size: 15px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.subtask.done .subtask-body {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* 就地输入行：点绿色回车（加）或铅笔（改）后显示，回车保存 */
+.subtask-new-row,
+.subtask-new-form,
+.subtask-edit-form {
+    border-top: 1px solid var(--border);
+}
+
+.subtask-input {
+    display: block;
+    width: calc(100% - 12px);
+    margin: 8px 6px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;             /* 不小于 16px，避免 iOS 聚焦放大整页 */
+    font-family: inherit;
+}
+
+.subtask-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* -------------------------------------------------------------- 计数徽标 */
+
+.todo-meta {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.subtask-badge {
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.subtask-badge:not(:empty)::before {
+    content: "·";
+    margin: 0 5px;
+    opacity: 0.6;
+}
+
+/* -------------------------------------------------------------- 手势提示 */
+
+.swipe-hint {
+    margin: 16px 4px 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* -------------------------------------------------------------- 勾选按钮 */
+
+.todo-check {
+    position: relative;
+    flex: 0 0 auto;
+    width: var(--tap);
+    height: var(--tap);
+    margin-top: 2px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+/* 圆圈画在伪元素上，这样按钮本身可以有 44px 的可点区域而圆圈只有 22px */
+.todo-check::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22px;
+    height: 22px;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.check-mark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    line-height: 1;
+    color: transparent;
+    transition: color 120ms ease;
+}
+
+.todo-item.done .todo-check::before {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.todo-item.done .check-mark {
+    color: var(--accent-ink);
+}
+
+.todo-check:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* -------------------------------------------------------------- 文本 */
+
+.todo-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 0;
+}
+
+.todo-body {
+    margin: 0;
+    /* 保留用户输入的换行 */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 16px;
+}
+
+.todo-item.done .todo-body {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.todo-time {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- 删除按钮 */
+
+.todo-delete {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    margin-top: 2px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    /* 和 .swipe-btn 的 18px 保持一致 —— 同一个 ✕ 字符，字号不同看起来就不齐 */
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    touch-action: manipulation;
+}
+
+.todo-delete:hover,
+.todo-delete:focus-visible {
+    color: var(--danger);
+    background: var(--surface-alt);
+    outline: none;
+}
+
+/* 编辑按钮：和删除按钮同样的触控尺寸，只是内容是图标而非文字 */
+.todo-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    margin-top: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.todo-icon:hover,
+.todo-icon:focus-visible {
+    color: var(--accent);
+    background: var(--surface-alt);
+    outline: none;
+}
+
+.todo-icon:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* -------------------------------------------------------------- 待办编辑态 */
+
+/* 展示态是 flex 行，编辑态要整行铺开表单 */
+.todo-editing {
+    display: block;
+    padding: 10px 12px;
+}
+
+.todo-edit-form {
+    width: 100%;
+}
+
+.todo-edit-body {
+    min-height: 64px;
+}
+
+/* ============================================================== 记录模块 */
+
+/* 折叠式输入区。用原生 <details>，不需要 JS */
+.composer-box {
+    margin-bottom: 14px;
+}
+
+.composer-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--tap);
+    padding: 0 16px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+/* 去掉 Safari/Chrome 默认的小三角 */
+.composer-summary::-webkit-details-marker {
+    display: none;
+}
+
+.composer-plus {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* 展开时输入区与摘要拼成一整块 */
+.composer-box[open] .composer-summary {
+    border-style: solid;
+    border-color: var(--border);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    color: var(--text);
+}
+
+.note-form {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--surface);
+}
+
+/* -------------------------------------------------------------- 表单控件 */
+
+.field {
+    display: block;
+    width: 100%;
+    min-height: var(--tap);
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    /* 不小于 16px：iOS Safari 聚焦更小字号的输入框时会自动放大整页 */
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.field + .field {
+    margin-top: 8px;
+}
+
+.field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field::placeholder {
+    color: var(--muted);
+}
+
+.field-body {
+    min-height: 96px;
+    /* 手机上纵向拉伸会跟软键盘打架，只在有鼠标的设备上允许 */
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-primary,
+.btn-ghost {
+    min-height: var(--tap);
+    padding: 0 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.btn-primary {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.btn-ghost {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+}
+
+/* -------------------------------------------------------------- 卡片列表 */
+
+.note-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 空状态。同样依赖 <ul> 真的是 :empty —— 见 note-list.html 里那行注释 */
+.note-list:empty::after {
+    content: attr(data-empty);
+    display: block;
+    padding: 40px 20px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.note-card {
+    padding: 14px 14px 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.note-card.htmx-added {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
+.note-card.htmx-swapping {
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.note-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.note-body {
+    margin: 0;
+    /* 保留用户输入的换行 */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 15px;
+    opacity: 0.85;
+}
+
+.note-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.note-time {
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.note-actions {
+    display: flex;
+}
+
+.btn-icon {
+    min-height: var(--tap);
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--muted);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.btn-icon:hover,
+.btn-icon:focus-visible {
+    color: var(--accent);
+    background: var(--surface-alt);
+    outline: none;
+}
+
+.btn-icon.btn-danger:hover,
+.btn-icon.btn-danger:focus-visible {
+    color: var(--danger);
+}
+
+/* 编辑态：去掉卡片内的多余内边距 */
+.note-editing {
+    padding: 12px;
+}
+
+/* -------------------------------------------------------------- 回收站 */
+
+.page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.page-hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.btn-small {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
+.btn-ghost:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.trash-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.trash-type {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    font-weight: 600;
+}
+
+.trash-card {
+    opacity: 0.82;
+}
+
+/* 子目录在回收站里要说明它原本属于哪条待办 */
+.trash-parent {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.trash-parent span {
+    color: var(--text);
+}
+
+/* 顶栏三个标签，窄屏上收一收，避免挤到换行 */
+@media (max-width: 400px) {
+    .brand {
+        font-size: 15px;
+    }
+    .tabs a,
+    .tabs .tab-disabled {
+        padding: 0 9px;
+        font-size: 14px;
+    }
+    .topbar-inner {
+        padding: 0 6px 0 12px;
+    }
+}
+
+/* -------------------------------------------------------------- 管理页 */
+
+/* btn-ghost / btn-primary 也会用在 <a> 上，补上链接需要的属性 */
+a.btn-ghost,
+a.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.panel {
+    margin-bottom: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.panel-title {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.panel-hint {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.panel-hint b {
+    color: var(--text);
+}
+
+.panel-path {
+    margin: -6px 0 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--surface-alt);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: ui-monospace, Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.stat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.stat-list li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.stat-list li:last-child {
+    border-bottom: 0;
+}
+
+.stat-list span {
+    color: var(--muted);
+}
+
+.stat-list b {
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+}
+
+.snapshot-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.snapshot-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.snapshot-list li:last-child {
+    border-bottom: 0;
+}
+
+.snapshot-size {
+    color: var(--muted);
+}
+
+.export-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.flash {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* -------------------------------------------------------------- 搜索 */
+
+.search {
+    margin: 0 0 10px;
+}
+
+.search-input {
+    display: block;
+    width: 100%;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    /* 不小于 16px：iOS Safari 聚焦更小字号的输入框时会自动放大整页 */
+    font-size: 16px;
+    font-family: inherit;
+}
+
+.search-input::placeholder {
+    color: var(--muted);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.search-input::-webkit-search-cancel-button {
+    cursor: pointer;
+}
+
+/* -------------------------------------------------------------- 登录 / 设置密码 */
+
+.auth-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 340px;
+    padding: 28px 22px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+}
+
+.auth-title {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 650;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+.auth-sub {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.auth-form .field + .field {
+    margin-top: 8px;
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 14px;
+}
+
+.auth-note {
+    margin: 18px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.auth-note code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-alt);
+    font-size: 11px;
+}
+
+.flash-error {
+    border-color: var(--danger);
+    background: transparent;
+    color: var(--danger);
+}
+
+.logout-form {
+    margin-top: 12px;
+}
+
+/* -------------------------------------------------------------- 大屏 */
+
+@media (min-width: 768px) {
+    .container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .todo-body {
+        font-size: 15px;
+    }
+}
+
+/* -------------------------------------------------------------- 无障碍 */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

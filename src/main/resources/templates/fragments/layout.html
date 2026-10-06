@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  布局片段。所有页面通过 th:replace 引入 head 和 nav。
+-->
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <!-- 移动端最关键的一行：没有它手机上显示的是缩小版桌面页面 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17161a" media="(prefers-color-scheme: dark)">
+    <meta name="format-detection" content="telephone=no">
+    <title th:text="${pageTitle}">Techo</title>
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <!-- 主屏图标。加到手机桌面后会用这几个 -->
+    <link rel="icon" type="image/png" th:href="@{/favicon.png}">
+    <link rel="apple-touch-icon" th:href="@{/apple-touch-icon.png}">
+    <link rel="manifest" th:href="@{/manifest.json}">
+
+    <!-- iOS：允许「添加到主屏幕」后全屏运行、状态栏用默认样式 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Techo">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- htmx 本地引用：局域网环境不能依赖 CDN，外网不通时页面功能会整个失效 -->
+    <script th:src="@{/js/htmx.min.js}" defer></script>
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+
+<th:block th:fragment="nav(active)">
+    <header class="topbar">
+        <div class="topbar-inner">
+            <span class="brand">Techo</span>
+            <nav class="tabs">
+                <a th:href="@{/todo}"
+                   th:classappend="${active == 'todo'} ? 'active' : ''">待办</a>
+                <a th:href="@{/notes}"
+                   th:classappend="${active == 'notes'} ? 'active' : ''">记录</a>
+                <a th:href="@{/trash}"
+                   th:classappend="${active == 'trash'} ? 'active' : ''">回收站</a>
+                <a th:href="@{/manage}"
+                   th:classappend="${active == 'manage'} ? 'active' : ''">管理</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 出错时由 app.js 填入文字并显示 -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('管理 · Techo')}"></head>
+<body>
+
+<header th:replace="~{fragments/layout :: nav('manage')}"></header>
+
+<main class="container">
+
+    <!-- ---------------------------------------------- 数据概览 -->
+    <section class="panel">
+        <h2 class="panel-title">数据概览</h2>
+        <ul class="stat-list">
+            <li><span>待办</span><b th:text="${todoCount}">0</b></li>
+            <li><span>记录</span><b th:text="${noteCount}">0</b></li>
+            <li><span>回收站</span><b th:text="${trashCount}">0</b></li>
+            <li><span>合计（不含回收站）</span><b th:text="${totalCount}">0</b></li>
+        </ul>
+    </section>
+
+    <!-- ---------------------------------------------- 备份 -->
+    <div th:replace="~{fragments/backup-panel :: panel}"></div>
+
+    <!-- ---------------------------------------------- 导出 -->
+    <section class="panel">
+        <h2 class="panel-title">导出</h2>
+        <p class="panel-hint">
+            把全部数据导出成文件。即使以后不再用 Techo，这些文件也能直接阅读和处理 ——
+            <b>导出的意义不只是备份，更是数据不被锁死在这个程序里。</b>
+        </p>
+        <div class="export-actions">
+            <a class="btn-ghost" th:href="@{/api/export/markdown}">导出 Markdown</a>
+            <a class="btn-ghost" th:href="@{/api/export/json}">导出 JSON</a>
+        </div>
+    </section>
+
+    <!-- ---------------------------------------------- 安全 -->
+    <th:block th:if="${authEnabled}">
+        <div th:replace="~{fragments/security-panel :: panel}"></div>
+    </th:block>
+
+    <!-- ---------------------------------------------- 回收站 -->
+    <section class="panel">
+        <h2 class="panel-title">回收站</h2>
+        <p class="panel-hint">
+            删除的条目会先放进回收站，确认不要了再彻底删除。当前有
+            <b th:text="${trashCount}">0</b> 条。
+        </p>
+        <a class="btn-ghost" th:href="@{/trash}">打开回收站</a>
+    </section>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  安全面板。用 htmx 就地替换 —— 改密码是表单提交，
+  用重定向的话在部分客户端上 302 会保留 POST 方法（同 backup-panel 的注释）。
+-->
+<body>
+
+<section th:fragment="panel" id="security-panel" class="panel">
+    <h2 class="panel-title">安全</h2>
+
+    <p class="flash flash-error" th:if="${passwordError}" th:text="${passwordError}">当前密码不正确</p>
+    <p class="flash" th:if="${passwordMessage}" th:text="${passwordMessage}">密码已更新</p>
+
+    <p class="panel-hint">
+        密码只以 BCrypt 哈希存在数据库里，不保存明文。
+        同一来源连续输错 5 次会锁定 5 分钟。
+    </p>
+
+    <form hx-post="/auth/password"
+          hx-target="#security-panel"
+          hx-swap="outerHTML"
+          hx-disabled-elt="find button[type='submit']">
+
+        <input type="password" name="current" class="field"
+               placeholder="当前密码" autocomplete="current-password" maxlength="128" required>
+        <input type="password" name="password" class="field"
+               placeholder="新密码（至少 4 位）" autocomplete="new-password" maxlength="128" required>
+        <input type="password" name="confirm" class="field"
+               placeholder="再输一次新密码" autocomplete="new-password" maxlength="128" required>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary btn-small">修改密码</button>
+        </div>
+    </form>
+
+    <form method="post" th:action="@{/logout}" class="logout-form">
+        <button type="submit" class="btn-ghost btn-small">退出登录</button>
+    </form>
+</section>
+
+</body>
+</html>

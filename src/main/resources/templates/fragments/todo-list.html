@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  待办列表片段。抽出来是为了搜索时只换列表、不动输入框。
+
+  注意 <ul> 必须写在一行内：空状态靠 CSS 的 :empty 判断，
+  标签之间只要有换行就会产生文本节点，:empty 永远不成立。
+
+  data-empty 让空状态的文案能区分「一条都没有」和「搜索没结果」——
+  CSS 的 content: attr() 可以直接把它取出来用。
+-->
+<body>
+
+<ul th:fragment="list"
+    id="todo-list"
+    class="todo-list"
+    th:attr="data-empty=${q == null || q.isBlank()
+        ? '还没有待办，从上面的输入框开始记吧。'
+        : '没有找到匹配的待办。'}"><th:block th:each="item : ${items}"><li th:replace="~{fragments/todo-item :: item(${item}, ${subtaskMap[item.id]})}"></li></th:block></ul>
+
+</body>
+</html>

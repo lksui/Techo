@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!--
+  回收站列表片段。
+
+  单独抽出来是因为「清空回收站」需要用空列表把整个 <ul> 换掉。
+  和 trash-item.html 里的 item 片段配合使用。
+-->
+<body>
+
+<ul th:fragment="list" id="trash-list" class="note-list"
+    data-empty="回收站是空的。"><th:block th:each="item : ${items}"><li th:replace="~{fragments/trash-item :: item(${item})}"></li></th:block></ul>
+
+</body>
+</html>
